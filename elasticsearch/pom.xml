@@ -2,21 +2,18 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.senzing</groupId>
   <artifactId>g2elasticsearch</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.2.0</version>
   <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>25</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.16.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
       </plugin>
 
       <plugin>
@@ -32,6 +29,9 @@
                 <exclude>META-INF/*.SF</exclude>
                 <exclude>META-INF/*.DSA</exclude>
                 <exclude>META-INF/*.RSA</exclude>
+                <exclude>META-INF/MANIFEST.MF</exclude>
+                <exclude>module-info.class</exclude>
+                <exclude>META-INF/versions/*/module-info.class</exclude>
               </excludes>
             </filter>
           </filters>
@@ -49,8 +49,10 @@
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <!-- Main-Class>com.foo.Test</Main-Class -->
                     <Main-Class>com.senzing.g2.elasticsearch.G2toElastic</Main-Class>
+                    <!-- g2 is not shaded in; use the copy that matches the installed native Senzing library -->
+                    <Class-Path>/opt/senzing/g2/lib/g2.jar</Class-Path>
+                    <Multi-Release>true</Multi-Release>
                   </manifestEntries>
                 </transformer>
               </transformers>
@@ -58,54 +60,37 @@
           </execution>
         </executions>
       </plugin>
-
-  	</plugins>
+    </plugins>
   </build>
   <dependencies>
-	    <dependency>
-	      <groupId>jakarta.json</groupId>
-	      <artifactId>jakarta.json-api</artifactId>
-	      <version>2.1.3</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>co.elastic.clients</groupId>
-	      <artifactId>elasticsearch-java</artifactId>
-	      <version>9.5.4</version>
-	    </dependency>
-		<dependency>
-		    <groupId>org.elasticsearch.client</groupId>
-		    <artifactId>elasticsearch-rest-client</artifactId>
-		    <version>9.5.4</version>
-		</dependency>
-	    <dependency>
-	      <groupId>com.fasterxml.jackson.core</groupId>
-	      <artifactId>jackson-databind</artifactId>
-	      <version>2.22.3</version>
-	    </dependency>
-	<dependency>
-	    <groupId>com.fasterxml.jackson.dataformat</groupId>
-	    <artifactId>jackson-dataformat-xml</artifactId>
-	    <version>2.22.2</version>
-	</dependency>
-  	<dependency>
-  		<groupId>com.senzing</groupId>
-  		<artifactId>g2</artifactId>
-  		<version>3.0.1</version>
- 	</dependency>
-  	<dependency>
-  		<groupId>org.apache.commons</groupId>
-  		<artifactId>commons-csv</artifactId>
-  		<version>1.14.1</version>
-  	</dependency>
-	<dependency>
-	    <groupId>commons-io</groupId>
-	    <artifactId>commons-io</artifactId>
-	    <version>2.22.0</version>
-	</dependency>
-  	<dependency>
-  		<groupId>org.glassfish</groupId>
-  		<artifactId>javax.json</artifactId>
-  		<version>1.1.4</version>
-  	</dependency>
+    <dependency>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
+      <version>9.5.4</version>
+    </dependency>
+    <!-- The entity documents are built with jakarta.json directly; Parsson is its implementation -->
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+      <version>2.1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.parsson</groupId>
+      <artifactId>parsson</artifactId>
+      <version>1.1.9</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- The Elasticsearch HTTP client logs through SLF4J; discard it instead of printing a missing-binding warning -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>2.0.20</version>
+    </dependency>
+    <dependency>
+      <groupId>com.senzing</groupId>
+      <artifactId>g2</artifactId>
+      <version>3.0.1</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>
