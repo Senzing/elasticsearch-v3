@@ -1,36 +1,46 @@
-ARG BASE_IMAGE=senzing/senzingapi-runtime:3.13.0@sha256:c9c3502b35fbcc30d3cdbe3597392f964c7a15db52736dac938d28916d121f70
+ARG BASE_IMAGE=senzing/senzingapi-runtime:3.13.2@sha256:0b81ebfa328ff27f548ccbf769940de3dac3dbd223bc4818e3897c5497887910
+ARG BUILDER_IMAGE=maven:3.9.16-eclipse-temurin-25@sha256:93b8a14ea2f412782e4e842651273b4d903e35cc496284f178fbbe2d67d00976
+
+# -----------------------------------------------------------------------------
+# Stage: builder
+# -----------------------------------------------------------------------------
+
+# The jar is platform-independent, so build it once on the build platform instead of under emulation.
+
+FROM --platform=$BUILDPLATFORM ${BUILDER_IMAGE} AS builder
+
+COPY elasticsearch /build
+WORKDIR /build
+
+RUN mvn -B clean package
+
+# -----------------------------------------------------------------------------
+# Stage: final
+# -----------------------------------------------------------------------------
+
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2025-10-22
+ENV REFRESHED_AT=2026-10-08
 
-LABEL Name="senzing/elasticsearch" \
+LABEL Name="senzing/elasticsearch-v3" \
       Maintainer="support@senzing.com" \
-      Version="1.1.0"
+      Version="1.2.0"
 
 # Run as "root" for system installation.
 
 USER root
 
-COPY elasticsearch /build
-WORKDIR /build
-
 RUN apt-get update \
   && apt-get -y install --no-install-recommends \
-      postgresql-client \
-      openjdk-21-jre-headless \
-      maven \
+      openjdk-25-jre-headless \
   && apt-get -y clean \
-  && mvn clean install \
-  && mkdir /app \
-  && cp target/g2elasticsearch-1.0.0-SNAPSHOT.jar /app/ \
-  && rm -rf /build \
-  && apt-get -y remove maven \
-  && apt-get -y autoremove \
-  && apt-get -y clean
+  && rm -rf /var/lib/apt/lists/*
 
-HEALTHCHECK CMD test -f /app/g2elasticsearch-1.0.0-SNAPSHOT.jar
+COPY --from=builder /build/target/g2elasticsearch-1.2.0.jar /app/
+
+HEALTHCHECK CMD test -f /app/g2elasticsearch-1.2.0.jar
 
 USER 1001
 
 WORKDIR /app
-CMD ["java", "-jar", "g2elasticsearch-1.0.0-SNAPSHOT.jar"]
+CMD ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "g2elasticsearch-1.2.0.jar"]
