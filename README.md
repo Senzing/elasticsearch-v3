@@ -2,7 +2,7 @@
 
 ## Overview
 
-This code project demonstrates how the G2 engine may be used with an ElasticSearch indexing engine. ElasticSearch provides enhanced searching capabilities on entity data.
+This code project demonstrates how the Senzing v3 G2 engine may be used with an ElasticSearch indexing engine. ElasticSearch provides enhanced searching capabilities on entity data.
 
 The G2 data repository contains data records and observations about known entities. It determines which records match/merge to become single resolved entities. These resolved entities can be indexed through the ElasticSearch engine, to provide more searchable data entities.
 
@@ -11,7 +11,7 @@ ElasticSearch stores its indexed entity data in a separate data repository than 
 ### Preamble
 
 At [Senzing], we strive to create GitHub documentation in a
-"[don't make me think]" style. For the most part, instructions are copy and paste.
+"don't make me think" style. For the most part, instructions are copy and paste.
 Whenever thinking is needed, it's marked with a "thinking" icon :thinking:.
 Whenever customization is needed, it's marked with a "pencil" icon :pencil2:.
 If the instructions are not clear, please let us know by opening a new
@@ -40,8 +40,7 @@ If the instructions are not clear, please let us know by opening a new
 
 1. [Docker]
 1. [git]
-1. [maven]
-1. [java]
+1. [maven] and [java] 25 or later (only needed to build outside of Docker)
 
 ## Demonstration
 
@@ -51,8 +50,34 @@ If the instructions are not clear, please let us know by opening a new
 
 ### Startup elasticsearch
 
-- Start an instance of elasticsearch and your favorite elastic search UI, kibana is recommended and will be assumed for the remainder of this demonstration.
-  For guidance on how to get an instance of ES and kibana running visit our doc on [How to Bring Up an ELK Stack].
+1. Start an instance of elasticsearch and your favorite elastic search UI, kibana is recommended and will be assumed for the remainder of this demonstration.
+   For more options, see [Install Elasticsearch with Docker] and [Install Kibana with Docker].
+
+1. :thinking: Create the docker network unless it already exists (for example, if it was created by `elasticsearch/docker-compose.yaml`).
+
+   ```console
+   sudo docker network create senzing-network
+   ```
+
+1. Start elasticsearch and kibana. Example:
+
+   ```console
+   sudo docker run --detach \
+     --name senzing-elasticsearch \
+     --network senzing-network \
+     --publish 9200:9200 \
+     --env discovery.type=single-node \
+     --env xpack.security.enabled=false \
+     --env ES_JAVA_OPTS="-Xms1g -Xmx1g" \
+     docker.elastic.co/elasticsearch/elasticsearch:9.5.4
+
+   sudo docker run --detach \
+     --name senzing-kibana \
+     --network senzing-network \
+     --publish 5601:5601 \
+     --env ELASTICSEARCH_HOSTS=http://senzing-elasticsearch:9200 \
+     docker.elastic.co/kibana/kibana:9.5.4
+   ```
 
 ### Build project
 
@@ -60,7 +85,7 @@ If the instructions are not clear, please let us know by opening a new
 
    ```console
    export GIT_ACCOUNT=senzing
-   export GIT_REPOSITORY=elasticsearch
+   export GIT_REPOSITORY=elasticsearch-v3
    export GIT_ACCOUNT_DIR=~/${GIT_ACCOUNT}.git
    export GIT_REPOSITORY_DIR="${GIT_ACCOUNT_DIR}/${GIT_REPOSITORY}"
    ```
@@ -68,7 +93,7 @@ If the instructions are not clear, please let us know by opening a new
 1. Clone the repository
    ```console
    cd ${GIT_ACCOUNT_DIR}
-   git clone https://github.com/Senzing/elasticsearch.git
+   git clone https://github.com/Senzing/elasticsearch-v3.git
    cd ${GIT_REPOSITORY_DIR}
    ```
 1. :thinking: Make sure the [SENZING_ENGINE_CONFIGURATION_JSON] environment variable is set to the Senzing installation that the data was loaded into earlier
@@ -85,7 +110,7 @@ If the instructions are not clear, please let us know by opening a new
 
    ```console
    cd {GIT_REPOSITORY_DIR}
-   sudo docker build -t senzing/elasticsearch .
+   sudo docker build -t senzing/elasticsearch-v3 .
    ```
 
 ### Run the indexer
@@ -105,7 +130,7 @@ If the instructions are not clear, please let us know by opening a new
      -e SENZING_ENGINE_CONFIGURATION_JSON \
      --network=senzing-network \
      --volume ~/senzing/var/sqlite:/db \
-     senzing/elasticsearch
+     senzing/elasticsearch-v3
    ```
 
 #### Using an external Senzing database
@@ -137,7 +162,7 @@ If the instructions are not clear, please let us know by opening a new
       -e ELASTIC_INDEX_NAME \
       -e SENZING_ENGINE_CONFIGURATION_JSON \
       --network=senzing-network \
-      senzing/elasticsearch
+      senzing/elasticsearch-v3
     ```
 
 ### Search data
@@ -150,25 +175,26 @@ If the instructions are not clear, please let us know by opening a new
 
 3. Create Index.
 
-   - If all was done correctly, a new screen with a button to "Create data view" should appear.
-   - Click this and in the `index pattern` box type the name of the index that was created, this was the `ELASTIC_INDEX_NAME` variable set early, and should also appear on the right side of the popup.
+   - Click the "Data view" menu at the top left of the screen, then click "Create a data view".
+   - In the `index pattern` box type the name of the index that was created, this was the `ELASTIC_INDEX_NAME` variable set early, and should also appear on the right side of the popup.
    - The `Name` field can be set but is not required.
+   - The indexed entities have no timestamp, so for `Timestamp field` select "--- I don't want to use the time filter ---".
 
-4. Press "Save data view to Kibana" at the bottom of the screen, now can view the created index and do searches. If fuzzy searches are needed click on "Saved Query" and switch the language to lucene. [Here] you can view the lucene syntax and how to do fuzzy searches
+4. Press "Save data view to Kibana" at the bottom of the screen. You can now view the created index and do searches. If fuzzy searches are needed click on the menu button to the left of the search bar, choose "Language" and switch the language to lucene. [Here] you can view the lucene syntax and how to do fuzzy searches
    <img width="246" alt="image" src="https://github.com/SamMacy/elasticsearch/assets/49598357/c77b8f8b-6877-4701-9677-511e5aafb81f">
 
-[Docker]: https://github.com/Senzing/knowledge-base/blob/main/WHATIS/docker.md
-[Documentation issue]: https://github.com/Senzing/template-python/issues/new?template=documentation_request.md
-[don't make me think]: https://github.com/Senzing/knowledge-base/blob/main/WHATIS/dont-make-me-think.md
+[Docker]: https://docs.docker.com/get-started/get-docker/
+[Documentation issue]: https://github.com/Senzing/elasticsearch-v3/issues/new
 [Elasticsearch]: https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html
-[git]: https://github.com/Senzing/knowledge-base/blob/main/WHATIS/git.md
-[Here]: https://www.elastic.co/guide/en/elasticsearch/reference/8.8/query-dsl-query-string-query.html#query-string-fuzziness
-[How to Bring Up an ELK Stack]: https://github.com/Senzing/knowledge-base/blob/main/HOWTO/bring-up-ELK-stack.md
-[java]: https://github.com/Senzing/knowledge-base/blob/main/WHATIS/java.md
+[git]: https://git-scm.com/
+[Here]: https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-query-string-query#query-string-fuzziness
+[Install Elasticsearch with Docker]: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-with-docker
+[Install Kibana with Docker]: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-kibana-with-docker
+[java]: https://adoptium.net/
 [kibana]: https://www.elastic.co/guide/en/kibana/current/install.html
 [localhost:5601]: http://localhost:5601
-[maven]: https://github.com/Senzing/knowledge-base/blob/main/WHATIS/maven.md
-[quickstart]: https://senzing.zendesk.com/hc/en-us/articles/115002408867-Quickstart-Guide-
-[SENZING_ENGINE_CONFIGURATION_JSON]: https://github.com/Senzing/knowledge-base/blob/main/lists/environment-variables.md#senzing_engine_configuration_json
+[maven]: https://maven.apache.org/
+[quickstart]: https://www.senzing.com/docs/quickstart/3/
+[SENZING_ENGINE_CONFIGURATION_JSON]: https://senzing.zendesk.com/hc/en-us/articles/360038774134-G2Engine-Configuration-and-the-Senzing-SDK
 [Senzing]: https://senzing.com
  

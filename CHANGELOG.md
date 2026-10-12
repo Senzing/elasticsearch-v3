@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.13.2] - 2026-10-12
+
+### changed in 3.13.2
+
+- Release versions now match the Senzing version the Docker image is built on
+- Upgraded to `senzing/senzingapi-runtime:3.13.2`; the image's own `g2.jar` is used at runtime
+- Upgraded to elasticsearch-java 9.5.4
+- Upgraded to Java 25
+- Docker image is now a multi-stage build
+- Exits with a non-zero status if Senzing fails to start or any entity fails to index
+- docker-compose uses the official `postgres` image, `senzing/init-postgresql` and `senzing/senzingapi-tools`
+
 ## [1.0.0] - 2023-07-06
 
 ### changed in 1.0.0

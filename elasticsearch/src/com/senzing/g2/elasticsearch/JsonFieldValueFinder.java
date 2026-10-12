@@ -3,12 +3,12 @@ package com.senzing.g2.elasticsearch;
 import java.io.StringReader;
 import java.util.Set;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 
 // This class will search all of the attributes of a JSON document, and return a list of fields that 
 // start with a particular substring.

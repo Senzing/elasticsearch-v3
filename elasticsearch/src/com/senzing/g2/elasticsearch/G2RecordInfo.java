@@ -4,7 +4,7 @@ public class G2RecordInfo
 {
 	// This is a container class for a JSON document for an input record.
 	// It corresponds to what is initially loaded into the system, 
-	// or what is returned from the G2_getRecord*() functions.
+	// or what is returned from G2Engine.getRecord().
 	
 	private String m_dataSource; // the data source for the record
 	private String m_recordID; // the record ID of the record
