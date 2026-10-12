@@ -20,11 +20,11 @@ RUN mvn -B clean package
 
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2026-10-08
+ENV REFRESHED_AT=2026-10-12
 
 LABEL Name="senzing/elasticsearch-v3" \
       Maintainer="support@senzing.com" \
-      Version="1.2.0"
+      Version="3.13.2"
 
 # Run as "root" for system installation.
 
@@ -36,11 +36,11 @@ RUN apt-get update \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build/target/g2elasticsearch-1.2.0.jar /app/
+COPY --from=builder /build/target/g2elasticsearch-3.13.2.jar /app/
 
-HEALTHCHECK CMD test -f /app/g2elasticsearch-1.2.0.jar
+HEALTHCHECK CMD test -f /app/g2elasticsearch-3.13.2.jar
 
 USER 1001
 
 WORKDIR /app
-CMD ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "g2elasticsearch-1.2.0.jar"]
+CMD ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "g2elasticsearch-3.13.2.jar"]

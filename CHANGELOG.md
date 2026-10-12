@@ -6,10 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2026-10-08
+## [3.13.2] - 2026-10-12
 
-### changed in 1.2.0
+### changed in 3.13.2
 
+- Release versions now match the Senzing version the Docker image is built on
 - Upgraded to `senzing/senzingapi-runtime:3.13.2`; the image's own `g2.jar` is used at runtime
 - Upgraded to elasticsearch-java 9.5.4
 - Upgraded to Java 25
